@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 import {
@@ -8,7 +8,12 @@ import {
   protectedProcedure,
   managerProcedure,
 } from "@/server/api/trpc";
-import { events, participants, notifications } from "@/server/db/schema";
+import {
+  events,
+  participants,
+  notifications,
+  teams,
+} from "@/server/db/schema";
 
 export const eventRouter = createTRPCRouter({
   create: managerProcedure
@@ -87,7 +92,6 @@ export const eventRouter = createTRPCRouter({
               points: true,
             },
           },
-          winner: true,
         },
       });
 
@@ -98,7 +102,17 @@ export const eventRouter = createTRPCRouter({
         });
       }
 
-      return event;
+      // Fetch winner team separately — winnerId has no FK to avoid circular import
+      let winner: { id: string; name: string } | null = null;
+      if (event.winnerId) {
+        const winnerTeam = await ctx.db.query.teams.findFirst({
+          where: eq(teams.id, event.winnerId),
+          columns: { id: true, name: true },
+        });
+        winner = winnerTeam ?? null;
+      }
+
+      return { ...event, winner };
     }),
 
   getAll: protectedProcedure.query(async ({ ctx }) => {

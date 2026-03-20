@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, pgEnum, boolean } from "drizzle-orm/pg-core";
 
 export const roleEnum = pgEnum("role", ["event_manager", "participant"]);
 
@@ -6,7 +6,7 @@ export const users = pgTable("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  emailVerified: timestamp("email_verified"),
+  emailVerified: boolean("email_verified").notNull().default(false),
   image: text("image"),
   role: roleEnum("role").notNull().default("participant"),
   createdAt: timestamp("created_at").notNull().defaultNow(),

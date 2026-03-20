@@ -5,11 +5,11 @@ export const createEventSchema = z.object({
   gameName: z.string().min(2, "Game name must be at least 2 characters."),
   description: z.string().optional(),
   prize: z.string().optional(),
-  teamSize: z.number().int().default(5),
+  teamSize: z.number().int().min(1).optional(),
   maxTeams: z.number().int().min(2, "There must be at least 2 teams."),
   leaderboardCriteria: z
     .enum(["points", "wins", "goal_difference"])
-    .default("points"),
+    .optional(),
   registrationDeadline: z.date().optional(),
   startTime: z.date(),
   endTime: z.date(),

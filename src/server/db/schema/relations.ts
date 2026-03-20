@@ -19,10 +19,6 @@ export const eventsRelations = relations(events, ({ one, many }) => ({
     fields: [events.managerId],
     references: [users.id],
   }),
-  winner: one(teams, {
-    fields: [events.winnerId],
-    references: [teams.id],
-  }),
   teams: many(teams),
   participants: many(participants),
   matches: many(matches),
@@ -42,6 +38,7 @@ export const teamsRelations = relations(teams, ({ one, many }) => ({
   members: many(teamMembers),
   matchesAsTeamA: many(matches, { relationName: "teamA" }),
   matchesAsTeamB: many(matches, { relationName: "teamB" }),
+  matchesWon: many(matches, { relationName: "matchWinner" }),
   points: many(teamPoints),
 }));
 
