@@ -1,5 +1,6 @@
 "use client";
 
+import { use } from "react";
 import { api } from "@/trpc/react";
 import { PageHeader } from "@/components/shared/page-header";
 import { MatchForm } from "@/components/matches/match-form";
@@ -11,9 +12,12 @@ import { Separator } from "@/components/ui/separator";
 export default function MatchesPage({
   params,
 }: {
-  params: { eventId: string };
+  // ✅ FIXED: params is now a Promise
+  params: Promise<{ eventId: string }>;
 }) {
-  const { eventId } = params;
+  // ✅ FIXED: unwrap with use() instead of direct destructure
+  const { eventId } = use(params);
+
   const { data: teams } = api.team.getByEvent.useQuery({ eventId });
   const teamOptions = teams?.map((t) => ({ id: t.id, name: t.name })) ?? [];
 
@@ -27,7 +31,6 @@ export default function MatchesPage({
 
       <div className="grid gap-6 lg:grid-cols-2">
         <MatchForm eventId={eventId} teams={teamOptions} />
-
         <div className="space-y-4">
           <p className="font-mono text-[10px] uppercase tracking-widest text-white/30">
             Current Standings

@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { use, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { format } from "date-fns";
 import {
   Calendar, Clock, Users, Trophy,
   Pencil, Trash2, Medal, ChevronRight,
@@ -26,9 +25,9 @@ import { LEADERBOARD_CRITERIA_LABELS } from "@/lib/constants";
 export default function EventDetailPage({
   params,
 }: {
-  params: { eventId: string };
+  params: Promise<{ eventId: string }>;
 }) {
-  const { eventId } = params;
+  const { eventId } = use(params);
   const router = useRouter();
   const utils = api.useUtils();
   const [deleteOpen, setDeleteOpen] = useState(false);

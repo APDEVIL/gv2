@@ -5,3 +5,4 @@ export * from "./team-member";
 export * from "./participant";
 export * from "./points";
 export * from "./notification";
+export * from "./relations";

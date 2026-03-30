@@ -1,5 +1,6 @@
 "use client";
 
+import { use } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { api } from "@/trpc/react";
@@ -11,9 +12,12 @@ import { type CreateEventInput } from "@/lib/validators";
 export default function EditEventPage({
   params,
 }: {
-  params: { eventId: string };
+  // ✅ FIXED: params is now a Promise
+  params: Promise<{ eventId: string }>;
 }) {
-  const { eventId } = params;
+  // ✅ FIXED: unwrap with use() instead of direct destructure
+  const { eventId } = use(params);
+
   const router = useRouter();
   const utils = api.useUtils();
 

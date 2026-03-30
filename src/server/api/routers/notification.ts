@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { eq, and, lt } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 import { createTRPCRouter, protectedProcedure, managerProcedure } from "@/server/api/trpc";
@@ -8,15 +8,33 @@ import { notifications, participants, events } from "@/server/db/schema";
 
 export const notificationRouter = createTRPCRouter({
   getAll: protectedProcedure.query(async ({ ctx }) => {
-    return ctx.db.query.notifications.findMany({
-      where: eq(notifications.userId, ctx.session.user.id),
-      with: {
-        event: {
-          columns: { id: true, title: true, gameName: true },
-        },
-      },
-      orderBy: (notifications, { desc }) => [desc(notifications.createdAt)],
-    });
+    const rows = await ctx.db
+      .select({
+        id: notifications.id,
+        userId: notifications.userId,
+        eventId: notifications.eventId,
+        type: notifications.type,
+        status: notifications.status,
+        title: notifications.title,
+        message: notifications.message,
+        isRead: notifications.isRead,
+        readAt: notifications.readAt,
+        createdAt: notifications.createdAt,
+        updatedAt: notifications.updatedAt,
+        eventTitle: events.title,
+        eventGameName: events.gameName,
+      })
+      .from(notifications)
+      .leftJoin(events, eq(notifications.eventId, events.id))
+      .where(eq(notifications.userId, ctx.session.user.id))
+      .orderBy(desc(notifications.createdAt));
+
+    return rows.map((row) => ({
+      ...row,
+      event: row.eventId
+        ? { id: row.eventId, title: row.eventTitle!, gameName: row.eventGameName! }
+        : null,
+    }));
   }),
 
   markAsRead: protectedProcedure

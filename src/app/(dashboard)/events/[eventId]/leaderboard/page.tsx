@@ -1,5 +1,6 @@
 "use client";
 
+import { use } from "react";
 import { motion } from "framer-motion";
 import { Trophy, Bell } from "lucide-react";
 import { toast } from "sonner";
@@ -29,9 +30,12 @@ const rankLabel = { gold: "1st", silver: "2nd", bronze: "3rd" };
 export default function LeaderboardPage({
   params,
 }: {
-  params: { eventId: string };
+  // ✅ FIXED: params is now a Promise
+  params: Promise<{ eventId: string }>;
 }) {
-  const { eventId } = params;
+  // ✅ FIXED: unwrap with use() instead of direct destructure
+  const { eventId } = use(params);
+
   const { data, isLoading } = api.leaderboard.getByEvent.useQuery({ eventId });
 
   const { mutate: notifyTop, isPending: isNotifying } =
@@ -231,8 +235,7 @@ function PodiumCard({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{
-        delay:
-          position === "gold" ? 0 : position === "silver" ? 0.1 : 0.2,
+        delay: position === "gold" ? 0 : position === "silver" ? 0.1 : 0.2,
       }}
       className={cn(
         "flex w-36 flex-col items-center justify-end rounded border p-3",

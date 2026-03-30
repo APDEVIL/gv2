@@ -13,7 +13,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { ParticipantStatusBadge } from "@/components/participants/participant-status-badge";
 import { cn } from "@/lib/utils";
 
 interface InviteDialogProps {
@@ -28,8 +27,9 @@ export function InviteDialog({ eventId }: InviteDialogProps) {
 
   const debouncedQuery = useDebounce(query, 300);
 
+  // ✅ FIXED: was api.search.usersInEvent (searched existing participants only)
   const { data: searchResults, isLoading: isSearching } =
-    api.search.usersInEvent.useQuery(
+    api.search.usersForInvite.useQuery(
       { eventId, query: debouncedQuery },
       { enabled: debouncedQuery.length >= 2 },
     );
@@ -54,8 +54,17 @@ export function InviteDialog({ eventId }: InviteDialogProps) {
     );
   };
 
+  const handleOpenChange = (val: boolean) => {
+    setOpen(val);
+    if (!val) {
+      // Reset state when dialog closes
+      setQuery("");
+      setSelectedIds([]);
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button className="flex items-center gap-2 border border-[#39FF14]/30 bg-[#39FF14]/10 font-mono text-[10px] uppercase tracking-widest text-[#39FF14] hover:bg-[#39FF14]/20">
           <UserPlus className="h-3.5 w-3.5" />
@@ -86,9 +95,12 @@ export function InviteDialog({ eventId }: InviteDialogProps) {
           {/* Results */}
           <div className="max-h-60 space-y-1.5 overflow-y-auto">
             {isSearching ? (
-              <p className="py-4 text-center font-mono text-[11px] uppercase tracking-widest text-white/20">
-                Searching...
-              </p>
+              <div className="flex items-center justify-center gap-2 py-4">
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-white/20" />
+                <p className="font-mono text-[11px] uppercase tracking-widest text-white/20">
+                  Searching...
+                </p>
+              </div>
             ) : debouncedQuery.length < 2 ? (
               <p className="py-4 text-center font-mono text-[11px] uppercase tracking-widest text-white/20">
                 Type at least 2 characters
@@ -99,16 +111,17 @@ export function InviteDialog({ eventId }: InviteDialogProps) {
               </p>
             ) : (
               searchResults?.results.map((user) => {
-                const isSelected = selectedIds.includes(user.userId);
+                // ✅ FIXED: was user.userId — usersForInvite returns `id`
+                const isSelected = selectedIds.includes(user.id);
                 return (
                   <button
-                    key={user.userId}
-                    onClick={() => toggleSelect(user.userId)}
+                    key={user.id}
+                    onClick={() => toggleSelect(user.id)}
                     className={cn(
                       "flex w-full items-center justify-between rounded px-3 py-2.5 transition-colors",
                       isSelected
-                        ? "bg-[#39FF14]/10 border border-[#39FF14]/20"
-                        : "bg-white/[0.03] border border-transparent hover:bg-white/[0.05]",
+                        ? "border border-[#39FF14]/20 bg-[#39FF14]/10"
+                        : "border border-transparent bg-white/[0.03] hover:bg-white/[0.05]",
                     )}
                   >
                     <div className="flex flex-col items-start gap-0.5">
@@ -119,13 +132,12 @@ export function InviteDialog({ eventId }: InviteDialogProps) {
                         {user.email}
                       </span>
                     </div>
-                    {user.status ? (
-                      <ParticipantStatusBadge status={user.status} />
-                    ) : isSelected ? (
+                    {/* ✅ FIXED: removed user.status (not returned by usersForInvite) */}
+                    {isSelected && (
                       <span className="font-mono text-[9px] uppercase tracking-widest text-[#39FF14]">
                         Selected
                       </span>
-                    ) : null}
+                    )}
                   </button>
                 );
               })

@@ -1,15 +1,11 @@
 import { TeamList } from "@/components/teams/team-list";
-import { api } from "@/trpc/react";
+import { TeamsPageClient } from "@/components/teams/team-page-client";
 
-export default function TeamsPage({
+export default async function TeamsPage({
   params,
 }: {
-  params: { eventId: string };
+  params: Promise<{ eventId: string }>;
 }) {
-  return <TeamsPageClient eventId={params.eventId} />;
-}
-
-function TeamsPageClient({ eventId }: { eventId: string }) {
-  const { data: event } = api.event.getById.useQuery({ eventId });
-  return <TeamList eventId={eventId} teamSize={event?.teamSize ?? 5} />;
+  const { eventId } = await params;
+  return <TeamsPageClient eventId={eventId} />;
 }
