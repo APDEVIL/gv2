@@ -6,16 +6,23 @@ import { toast } from "sonner";
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface TeamFormProps {
   eventId: string;
-  acceptedParticipants: {
+  acceptedParticipants?: {
     userId: string;
     user: { name: string };
   }[];
 }
 
-export function TeamForm({ eventId, acceptedParticipants }: TeamFormProps) {
+export function TeamForm({ eventId, acceptedParticipants = [] }: TeamFormProps) {
   const utils = api.useUtils();
   const [name, setName] = useState("");
   const [leaderId, setLeaderId] = useState("");
@@ -42,18 +49,30 @@ export function TeamForm({ eventId, acceptedParticipants }: TeamFormProps) {
           onChange={(e) => setName(e.target.value)}
           className="border-white/[0.08] bg-white/[0.03] font-mono text-[12px] uppercase tracking-wider text-white/80 placeholder:text-white/20 focus-visible:border-[#39FF14]/30 focus-visible:ring-0"
         />
-        <select
-          value={leaderId}
-          onChange={(e) => setLeaderId(e.target.value)}
-          className="flex-1 rounded border border-white/[0.08] bg-white/[0.03] px-3 font-mono text-[11px] uppercase tracking-wider text-white/60 focus:border-[#39FF14]/30 focus:outline-none"
-        >
-          <option value="">Select leader</option>
-          {acceptedParticipants.map((p) => (
-            <option key={p.userId} value={p.userId}>
-              {p.user.name}
-            </option>
-          ))}
-        </select>
+        
+        <Select value={leaderId} onValueChange={setLeaderId}>
+          <SelectTrigger className="flex-1 rounded border border-white/[0.08] bg-white/[0.03] px-3 font-mono text-[11px] uppercase tracking-wider text-white/60 focus:ring-0 focus:border-[#39FF14]/30">
+            <SelectValue placeholder="Select leader" />
+          </SelectTrigger>
+          <SelectContent className="border-white/[0.08] bg-[#111]">
+            {acceptedParticipants.length > 0 ? (
+              acceptedParticipants.map((p) => (
+                <SelectItem
+                  key={p.userId}
+                  value={p.userId}
+                  className="font-mono text-[11px] uppercase tracking-wider text-white/60 focus:bg-[#39FF14]/10 focus:text-[#39FF14]"
+                >
+                  {p.user.name}
+                </SelectItem>
+              ))
+            ) : (
+              <div className="py-3 text-center font-mono text-[10px] uppercase tracking-widest text-white/40">
+                No accepted participants
+              </div>
+            )}
+          </SelectContent>
+        </Select>
+
         <Button
           onClick={() => createTeam({ eventId, name, leaderId })}
           disabled={!name || !leaderId || isPending}
@@ -64,7 +83,7 @@ export function TeamForm({ eventId, acceptedParticipants }: TeamFormProps) {
           ) : (
             <Plus className="h-3.5 w-3.5" />
           )}
-          Create
+          <span className="ml-1.5">Create</span>
         </Button>
       </div>
     </div>
